@@ -1,0 +1,28 @@
+{
+  "name": "tweet-list",
+  "version": "1.0.0",
+  "description": "A list of tweets from the twitter streaming api with offline support",
+  "main": "app.js",
+  "dependencies": {
+    "dotenv": "^2.0.0",
+    "express": "^4.13.4",
+    "ioredis": "^1.15.1",
+    "mustache": "^2.2.1",
+    "pusher": "^1.2.1",
+    "tweets": "0.0.6"
+  },
+  "devDependencies": {},
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/pusher-community/tweet-list.git"
+  },
+  "author": "Ben Foxall (ben@pusher.com)",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/pusher-community/tweet-list/issues"
+  },
+  "homepage": "https://github.com/pusher-community/tweet-list#readme"
+}
