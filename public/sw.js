@@ -117,8 +117,15 @@ const cacheImages = (tweets) =>
         cache.match(t.img)
           .then(img => {
             if(!img) {
-              console.log("caching: ", t.img)
-              cache.add(t.img)
+              fetch(t.img, {
+                mode: 'no-cors'
+              })
+              .then(
+                r => cache.put(t.img, r)
+              )
+              .catch(e =>
+                console.log('error caching image', e)
+              )
             }
           })
       })
