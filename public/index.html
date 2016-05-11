@@ -1,0 +1,95 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8">
+    <title>Tweets</title>
+    <style media="screen">
+      body {
+        font-family: sans-serif;
+        font-weight: 100;
+      }
+      img {
+        height: 1.5em; width:1.5em;
+        display:inline-block;
+        vertical-align: middle;
+        margin-right:.5em;
+        border-radius: 10%;
+      }
+      h2 {
+        font-weight: 400;
+        font-size: 1.2em;
+      }
+      div{
+        max-width: 39em;
+        margin: auto;
+        border-bottom: 1px solid #eee;
+        padding: .5em;
+      }
+      p {
+        font-size: 1.5em;
+      }
+      a{
+        color: #eee;
+        text-decoration: none;
+        float:right;
+      }
+      a:hover {
+        color:#000
+      }
+      #container {
+        border:none
+      }
+    </style>
+  </head>
+  <body>
+
+    <div id='container'></div>
+
+    <script id='template' type='text/ractive'>
+      {{#tweets}}
+        <div>
+          <h2>
+            <img src="{{img}}" />
+            @{{screen_name}}
+          </h2>
+          <p>{{text}} <a href="{{link}}">&rarr;</a></p>
+        </div>
+      {{/tweets}}
+    </script>
+
+    <script src='/ractive.min.js'></script>
+
+    <script>
+    var ractive = new Ractive({
+      el: '#container',
+      template: '#template',
+      data: { tweets: [] }
+    })
+
+    fetchTweets()
+      .then(function(tweets){
+        ractive.set('tweets', tweets)
+      })
+
+
+    function fetchTweets() {
+      return new Ractive.Promise(function(accept, reject) {
+        var request = new XMLHttpRequest()
+
+        request.open('GET', '/json', true)
+
+        request.onload = function() {
+          if (request.status >= 200 && request.status < 400)
+            accept(JSON.parse(request.responseText))
+          else
+            reject()
+        }
+
+        request.onerror = reject
+        request.send()
+      })
+
+    }
+  </script>
+  </body>
+</html>
