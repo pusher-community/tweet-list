@@ -35,19 +35,23 @@ const populate = () =>
   caches.open(CACHE_NAME)
     .then((cache) =>  cache.addAll(['/json']))
 
+
+var pusher = false
+
 const subscribe = () =>
   fetch('/config')
     .then(res => res.json())
     .then(config => {
 
-      new Pusher(config.key, {
+      pusher = new Pusher(config.key, {
         cluster: config.cluster,
         encrypted: true
       })
 
-      //todo - on reconnect, repopulate
-      .subscribe('tweets')
-      .bind('tweet', add)
+      pusher
+        //todo - on reconnect, repopulate
+        .subscribe(config.channel)
+        .bind('tweet', add)
 
     })
 
