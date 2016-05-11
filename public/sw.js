@@ -1,4 +1,4 @@
-console.log("swx.jsnew")
+console.log("sw.js")
 
 importScripts(
   'pusher.worker.min.js',
@@ -6,88 +6,73 @@ importScripts(
   'mustache.min.js'
 )
 
-var tweets = []
+const CACHE_NAME = 'v2'
 
 const add = (tweet) => {
+  console.log(`🚀 ${tweet.text}`)
 
-  if(!tweets.some(_ => _.id_str === tweet.id_str )) {
-    tweets.unshift(tweet)
-    caches.open('v1').then( (cache) =>
-       cache.add(tweet.img)
-    )
-  }
+  // patch the cached version of the json file, adding the new content
+  caches.match('/json')
+    .then(resp => resp.json())
+    .then(tweets => {
 
-  // trim down
-  while(tweets.length >= 50) {
-    var rm = tweets.pop()
-    caches.open('v1').then( (cache) =>
-      // might be used in other tweets
-      cache.delete(rm.img)
-    )
-  }
+      if(!tweets.some(
+        t => t.id_str == tweet.id_str
+      )) tweets.unshift(tweet)
+
+      while(tweets.length <= 50) tweets.pop()
+
+      caches.open(CACHE_NAME)
+        .then(cache =>
+          cache.put('/json', new Response(
+            JSON.stringify(tweets),
+            {headers: {'Content-Type': 'application/json'}}
+          ))
+        )
+
+    })
 }
-
-
-const fetchAll = () =>
-  fetch('/json')
-    .then(res => res.json())
-    .then(data => tweets = data)
 
 const subscribe = () =>
   fetch('/config')
     .then(res => res.json())
-    .then(config =>
+    .then(config => {
+
       new Pusher(config.key, {
         cluster: config.cluster,
         encrypted: true
       })
       .subscribe('tweets')
       .bind('tweet', add)
-    )
 
-var tmpl
+    })
 
-const templateSetup = () =>
-  fetch('/index.tmpl.html')
-    .then(res => res.text())
-    .then(text => tmpl = text)
 
 this.addEventListener('install', function(event) {
+
   event.waitUntil(
-    Promise.all([subscribe(), fetchAll(), templateSetup()])
-    .then( () => {
-      console.log(":INSTALLED:", tmpl, tweets)
-    })
+    caches.open(CACHE_NAME)
+      .then((cache) =>  cache.addAll(['/json']))
+  )
+
+  event.waitUntil(
+    subscribe()
+  )
+
+})
+
+this.addEventListener('fetch', function(event) {
+  event.respondWith(
+    caches.match(event.request)
   )
 })
 
-this.addEventListener('activate', function(event) {
-  console.log(":ACTIVATING:", tmpl, tweets)
-})
 
 
-const jsonURL = new URL('/json-sw', self.location)
-const htmlURL = new URL('/html-sw', self.location)
-
-this.addEventListener('fetch', function(event) {
-  console.log(event.request.url)
-
-  if(event.request.url == jsonURL.href)
-    return event.respondWith(
-      new Response(JSON.stringify(tweets), {'Content-Type': 'application/json'})
-    )
-
-  if(event.request.url == htmlURL.href)
-    return event.respondWith(
-      new Response(Mustache.render(tmpl, {tweets: tweets}), {
-        headers: { 'Content-Type': 'text/html' }
-      })
-    )
-
-    event.respondWith(
-      caches.match(event.request).catch(function() {
-        return fetch(event.request);
-      })
-    )
-
-})
+self.addEventListener('install', function(event) {
+  event.waitUntil(self.skipWaiting())
+});
+self.addEventListener('activate', function(event) {
+  event.waitUntil(self.clients.claim())
+  console.log("claimed")
+});
