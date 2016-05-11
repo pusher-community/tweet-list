@@ -16,7 +16,10 @@ const add = (tweet) => {
 
       if(!tweets.some(
         t => t.id_str == tweet.id_str
-      )) tweets.unshift(tweet)
+      )) {
+        tweets.unshift(tweet)
+        broadcast(tweet)
+      }
 
       while(tweets.length <= 50) tweets.pop()
 
@@ -95,6 +98,15 @@ self.addEventListener('install', (event) => {
 self.addEventListener('activate', (event) => {
   event.waitUntil(self.clients.claim())
 })
+
+// post a message to all clients
+const broadcast = (message) =>
+  self.clients.matchAll()
+    .then((clients) =>
+      clients.forEach((client) =>
+        client.postMessage(message)
+      )
+    )
 
 
 

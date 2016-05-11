@@ -44,7 +44,24 @@
       }
       hr {
         border:none;
-        border-bottom: 1px solid #eee
+        border-bottom: 1px solid #eee;
+        margin-bottom:0;
+      }
+      #more {
+        color: #000000;
+        text-align: center;
+        background: #F1FF8D;
+        padding: 0.25em;
+        font-size: 1.5em;
+        transition: .2s;
+        display: block;
+        float:none;
+        border: none;
+        width: 100%;
+        cursor: pointer;
+      }
+      #more:hover{
+        background: #E8FF41
       }
     </style>
   </head>
@@ -63,6 +80,11 @@
 
       <hr />
 
+      {{#waiting}}
+        <button id="more" on-click="reload()">
+          + {{waiting}} tweet{{waiting == 1 ? '' : 's'}}
+        </button>
+      {{/waiting}}
 
       {{#tweets}}
         <div>
@@ -84,15 +106,20 @@
       data: {
         tweets: [],
         no_sw: !('serviceWorker' in navigator),
-        sw_active: false
+        sw_active: false,
+        waiting: 0
+      },
+      reload: function() {
+        fetchTweets()
+          .then(function(tweets){
+            ractive.set('tweets', tweets)
+            ractive.set('waiting', 0)
+          })
       }
     })
 
-    fetchTweets()
-      .then(function(tweets){
-        ractive.set('tweets', tweets)
-      })
-
+    // initial populate
+    ractive.reload()
 
     function fetchTweets() {
       return new Ractive.Promise(function(accept, reject) {
@@ -112,6 +139,16 @@
       })
 
     }
+
+
+    if(navigator.serviceWorker) {
+      navigator.serviceWorker.addEventListener('message', function(event) {
+        // it was probably about a tweet
+        ractive.add('waiting', 1)
+      })
+    }
+
+
 
     // hackily - handle the state of the the service worker
 
