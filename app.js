@@ -19,7 +19,8 @@ app.get('/json', (req, res, next) =>
 app.get('/config', (req, res) => {
   res.send({
     key: process.env.p_key,
-    cluster: process.env.p_cluster
+    cluster: process.env.p_cluster,
+    channel: process.env.p_channel
   })
 })
 

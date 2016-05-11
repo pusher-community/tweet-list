@@ -46,7 +46,7 @@ stream
       )
 
     // publish with pusher
-    pusher.trigger('tweets', 'tweet', data)
+    pusher.trigger(process.env.p_channel, 'tweet', data)
 
   })
 
