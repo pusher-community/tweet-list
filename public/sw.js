@@ -1,9 +1,7 @@
 console.log("sw.js")
 
 importScripts(
-  'pusher.worker.min.js',
-  'localforage.min.js',
-  'mustache.min.js'
+  'pusher.worker.min.js'
 )
 
 const CACHE_NAME = 'v2'
