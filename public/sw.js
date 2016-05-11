@@ -66,7 +66,15 @@ self.addEventListener('install', (event) => {
 self.addEventListener('fetch', (event) => {
 
   event.respondWith(
-    caches.match(event.request)
+    caches
+      .match(event.request)
+      .then(match => {
+        if(match) return match
+        throw "no match"
+      })
+      .catch(function() {
+        return fetch(event.request)
+      })
   )
 
 })
