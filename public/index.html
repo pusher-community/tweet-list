@@ -39,6 +39,13 @@
       #container {
         border:none
       }
+      .no {
+        opacity: 0.4
+      }
+      hr {
+        border:none;
+        border-bottom: 1px solid #eee
+      }
     </style>
   </head>
   <body>
@@ -46,6 +53,17 @@
     <div id='container'></div>
 
     <script id='template' type='text/ractive'>
+      <label class="{{no_sw?'no':'yeah'}}">
+        <input type="checkbox" checked="{{sw_active}}" disabled="{{no_sw}}"/> enable service worker
+      </label>
+
+      {{#no_sw}}
+      <p><em>Service workers are not supported by this browser</em></p>
+      {{/no_sw}}
+
+      <hr />
+
+
       {{#tweets}}
         <div>
           <h2>
@@ -63,7 +81,11 @@
     var ractive = new Ractive({
       el: '#container',
       template: '#template',
-      data: { tweets: [] }
+      data: {
+        tweets: [],
+        no_sw: !('serviceWorker' in navigator),
+        sw_active: false
+      }
     })
 
     fetchTweets()
@@ -90,6 +112,32 @@
       })
 
     }
+
+    // hackily - handle the state of the the service worker
+
+    var skipReg
+    navigator.serviceWorker.ready.then(function(){
+      ractive.set('sw_active', true)
+      skipReg = true
+    })
+
+    ractive.observe( 'sw_active', function ( newValue, oldValue, keypath ) {
+      if(oldValue === undefined) return console.log("skip")
+      if(newValue) {
+        if(skipReg) return skipReg = false
+        navigator.serviceWorker.register('/sw.js')
+      } else {
+        navigator.serviceWorker.getRegistrations()
+          .then(function(registrations){
+            console.log("unregistrations: ", registrations)
+            registrations.forEach(function(registration) {
+              registration.unregister().then(function(success) {
+                console.log("unregister: " + success ? 'successful' : 'unsuccessful')
+              })
+            })
+          })
+      }
+    })
   </script>
   </body>
 </html>
