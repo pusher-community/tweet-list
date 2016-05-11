@@ -1,7 +1,7 @@
 require('dotenv').config()
 
 const tweets = require('tweets')
-const pusher = require('pusher')
+const Pusher = require('pusher')
 const Redis = require('ioredis')
 const redis = new Redis(process.env.REDIS_URL)
 
@@ -10,6 +10,14 @@ const stream = new tweets({
   consumer_secret:     process.env.tw_consumer_secret,
   access_token:        process.env.tw_access_token,
   access_token_secret: process.env.tw_access_token_secret
+})
+
+const pusher = new Pusher({
+  appId: process.env.p_app_id,
+  key: process.env.p_key,
+  secret: process.env.p_secret,
+  cluster: process.env.p_cluster,
+  encrypted: true
 })
 
 stream
@@ -37,7 +45,9 @@ stream
         e => console.error('error:', e)
       )
 
-    // todo publish
+    // publish with pusher
+    pusher.trigger('tweets', 'tweet', data)
+
   })
 
 stream

@@ -7,6 +7,9 @@ const app = express()
 const Redis = require('ioredis')
 const redis = new Redis(process.env.REDIS_URL)
 
+
+app.use(express.static('public'))
+
 const tweets = () =>
   redis
     .lrange('tweets', 0, -1)
@@ -30,7 +33,7 @@ app.get('/csv', (req, res, next) => {
 })
 
 
-const tmpl = fs.readFileSync('./templates/index.html').toString()
+const tmpl = fs.readFileSync('./public/index.tmpl.html').toString()
 app.get('/', (req, res, next) => {
   tweets()
     .then(tweets =>
@@ -40,6 +43,12 @@ app.get('/', (req, res, next) => {
 })
 
 
+app.get('/config', (req, res) => {
+  res.send({
+    key: process.env.p_key,
+    cluster: process.env.p_cluster
+  })
+})
 
 app.listen(process.env.PORT || 3000)
 
