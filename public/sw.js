@@ -33,7 +33,11 @@ const add = (tweet) => {
 
 const populate = () =>
   caches.open(CACHE_NAME)
-    .then((cache) =>  cache.addAll(['/json']))
+    .then((cache) =>  cache.addAll([
+      '/json',
+      '/',
+      '/ractive.min.js'
+    ]))
 
 
 var pusher = false
