@@ -33,6 +33,10 @@ const add = (tweet) => {
     })
 }
 
+const populate = () =>
+  caches.open(CACHE_NAME)
+    .then((cache) =>  cache.addAll(['/json']))
+
 const subscribe = () =>
   fetch('/config')
     .then(res => res.json())
@@ -42,37 +46,54 @@ const subscribe = () =>
         cluster: config.cluster,
         encrypted: true
       })
+
+      //todo - on reconnect, repopulate
       .subscribe('tweets')
       .bind('tweet', add)
 
     })
 
 
-this.addEventListener('install', function(event) {
+self.addEventListener('install', (event) => {
 
+  // populate cache with current json state, then subscribe for changes
   event.waitUntil(
-    caches.open(CACHE_NAME)
-      .then((cache) =>  cache.addAll(['/json']))
-  )
-
-  event.waitUntil(
-    subscribe()
+    Promise.all([populate(),subscribe()])
   )
 
 })
 
-this.addEventListener('fetch', function(event) {
+self.addEventListener('fetch', (event) => {
+
   event.respondWith(
     caches.match(event.request)
   )
+
 })
 
 
 
-self.addEventListener('install', function(event) {
+self.addEventListener('install', (event) => {
   event.waitUntil(self.skipWaiting())
-});
-self.addEventListener('activate', function(event) {
+})
+self.addEventListener('activate', (event) => {
   event.waitUntil(self.clients.claim())
-  console.log("claimed")
-});
+})
+
+
+
+/*
+const cacheImages = (tweets) =>
+  caches.open(CACHE_NAME)
+    .then((cache) =>  {
+      tweets.forEach(t => {
+        cache.match(t.img)
+          .then(img => {
+            if(!img) {
+              console.log("caching: ", t.img)
+              cache.add(t.img)
+            }
+          })
+      })
+    })
+*/
