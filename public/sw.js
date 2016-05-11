@@ -20,6 +20,8 @@ const add = (tweet) => {
 
       while(tweets.length <= 50) tweets.pop()
 
+      cacheImages(tweets)
+
       caches.open(CACHE_NAME)
         .then(cache =>
           cache.put('/json', new Response(
@@ -96,7 +98,6 @@ self.addEventListener('activate', (event) => {
 
 
 
-/*
 const cacheImages = (tweets) =>
   caches.open(CACHE_NAME)
     .then((cache) =>  {
@@ -110,4 +111,3 @@ const cacheImages = (tweets) =>
           })
       })
     })
-*/
