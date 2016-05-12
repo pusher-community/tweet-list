@@ -1,7 +1,8 @@
 console.log("sw.js")
 
 importScripts(
-  'pusher.worker.min.js'
+  'pusher.worker.min.js',
+  'localforage.min.js'
 )
 
 const CACHE_NAME = 'v2'
@@ -36,40 +37,35 @@ const add = (tweet) => {
     })
 }
 
-const populate = () =>
-  caches.open(CACHE_NAME)
-    .then((cache) =>  cache.addAll([
-      '/json',
-      '/',
-      '/ractive.min.js'
-    ]))
-
-
 var pusher = false
 
-const subscribe = () =>
-  fetch('/config')
-    .then(res => res.json())
-    .then(config => {
+getConfig()
+  .then( config => {
 
-      pusher = new Pusher(config.key, {
-        cluster: config.cluster,
-        encrypted: true
-      })
-
-      pusher
-        //todo - on reconnect, repopulate
-        .subscribe(config.channel)
-        .bind('tweet', add)
-
+    pusher = new Pusher(config.key, {
+      cluster: config.cluster,
+      encrypted: true
     })
+
+    pusher
+      //todo - on reconnect, repopulate
+      .subscribe(config.channel)
+      .bind('tweet', add)
+  })
+
 
 
 self.addEventListener('install', (event) => {
 
-  // populate cache with current json state, then subscribe for changes
   event.waitUntil(
-    Promise.all([populate(),subscribe()])
+    caches.open(CACHE_NAME)
+      .then(cache =>
+        cache.addAll([
+          '/json',
+          '/',
+          '/ractive.min.js'
+        ])
+      )
   )
 
 })
@@ -130,3 +126,17 @@ const cacheImages = (tweets) =>
           })
       })
     })
+
+
+function getConfig() {
+
+  // fire an update regardless, doesn't matter too much if it fails
+  const update = fetch('/config')
+    .then(r => r.json())
+    .then(config => {
+      if(config) localforage.setItem('config', config)
+    })
+
+  return localforage.getItem('config')
+    .then( config => config || update )
+}
