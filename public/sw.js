@@ -7,6 +7,53 @@ importScripts(
 
 const CACHE_NAME = 'v2'
 
+
+self.addEventListener('install', (event) => {
+
+  event.waitUntil(
+    caches.open(CACHE_NAME)
+      .then(cache =>
+        cache.addAll([
+          '/json',
+          '/',
+          '/ractive.min.js'
+        ])
+      )
+  )
+
+})
+
+
+// cache first
+self.addEventListener('fetch', (event) => {
+
+  event.respondWith(
+    caches
+      .match(event.request)
+      .then(match =>
+        match || fetch(event.request)
+      )
+  )
+})
+
+
+pusherConfig()
+  .then( config => {
+
+    new Pusher(config.key, {
+      cluster: config.cluster,
+      encrypted: true
+    })
+
+    //todo - on reconnect, repopulate
+    .subscribe(config.channel)
+    .bind('tweet', add)
+
+  })
+
+
+
+
 const add = (tweet) => {
   console.log(`🚀 ${tweet.text}`)
 
@@ -36,64 +83,6 @@ const add = (tweet) => {
 
     })
 }
-
-var pusher = false
-
-getConfig()
-  .then( config => {
-
-    pusher = new Pusher(config.key, {
-      cluster: config.cluster,
-      encrypted: true
-    })
-
-    pusher
-      //todo - on reconnect, repopulate
-      .subscribe(config.channel)
-      .bind('tweet', add)
-  })
-
-
-
-self.addEventListener('install', (event) => {
-
-  event.waitUntil(
-    caches.open(CACHE_NAME)
-      .then(cache =>
-        cache.addAll([
-          '/json',
-          '/',
-          '/ractive.min.js'
-        ])
-      )
-  )
-
-})
-
-self.addEventListener('fetch', (event) => {
-
-  event.respondWith(
-    caches
-      .match(event.request)
-      .then(match => {
-        if(match) return match
-        throw "no match"
-      })
-      .catch(function() {
-        return fetch(event.request)
-      })
-  )
-
-})
-
-
-
-self.addEventListener('install', (event) => {
-  event.waitUntil(self.skipWaiting())
-})
-self.addEventListener('activate', (event) => {
-  event.waitUntil(self.clients.claim())
-})
 
 // post a message to all clients
 const broadcast = (message) =>
@@ -128,7 +117,7 @@ const cacheImages = (tweets) =>
     })
 
 
-function getConfig() {
+function pusherConfig() {
 
   // fire an update regardless, doesn't matter too much if it fails
   const update = fetch('/config')
@@ -140,3 +129,13 @@ function getConfig() {
   return localforage.getItem('config')
     .then( config => config || update )
 }
+
+
+// development helper
+
+self.addEventListener('install', (event) => {
+  event.waitUntil(self.skipWaiting())
+})
+self.addEventListener('activate', (event) => {
+  event.waitUntil(self.clients.claim())
+})
