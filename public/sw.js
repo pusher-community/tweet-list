@@ -47,7 +47,7 @@ self.addEventListener('fetch', (event) => {
 */
 
 
-connect()
+config()
   .then( config => {
 
     var pusher = new Pusher(config.key, {
@@ -138,7 +138,7 @@ const cacheImages = (tweets) =>
     })
 
 
-function connect() {
+function config() {
 
   // fire an update regardless, doesn't matter too much if it fails
   const update = fetch('/config')
