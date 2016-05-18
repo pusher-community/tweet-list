@@ -8,6 +8,10 @@ importScripts(
 const CACHE_NAME = 'v2'
 
 
+/*
+  Cache + Serve the frontend
+*/
+
 self.addEventListener('install', (event) => {
 
   event.waitUntil(
@@ -24,9 +28,8 @@ self.addEventListener('install', (event) => {
 })
 
 
-// cache first
 self.addEventListener('fetch', (event) => {
-
+  // cache first then network
   event.respondWith(
     caches
       .match(event.request)
@@ -37,19 +40,21 @@ self.addEventListener('fetch', (event) => {
 })
 
 
-pusherConfig()
-  .then( config => {
 
-    new Pusher(config.key, {
-      cluster: config.cluster,
-      encrypted: true
-    })
 
-    //todo - on reconnect, repopulate
-    .subscribe(config.channel)
-    .bind('tweet', add)
+/*
+  Update /json with messages data from Pusher
+*/
 
-  })
+
+connect()
+  .then( pusher =>
+    pusher
+      //todo - on reconnect, repopulate
+      .subscribe(config.channel)
+      .bind('tweet', add)
+
+  )
 
 
 
@@ -117,7 +122,7 @@ const cacheImages = (tweets) =>
     })
 
 
-function pusherConfig() {
+function connect() {
 
   // fire an update regardless, doesn't matter too much if it fails
   const update = fetch('/config')
@@ -128,6 +133,12 @@ function pusherConfig() {
 
   return localforage.getItem('config')
     .then( config => config || update )
+    .then( config =>
+        new Pusher(config.key, {
+          cluster: config.cluster,
+          encrypted: true
+        })
+    )
 }
 
 
