@@ -48,13 +48,29 @@ self.addEventListener('fetch', (event) => {
 
 
 connect()
-  .then( pusher =>
+  .then( config => {
+
+    var pusher = new Pusher(config.key, {
+      cluster: config.cluster,
+      encrypted: true
+    })
+
     pusher
-      //todo - on reconnect, repopulate
       .subscribe(config.channel)
       .bind('tweet', add)
 
-  )
+    // recache '/json' on reconnect (might have changed)
+    pusher
+      .connection
+        .bind('connected', c =>
+          caches.open(CACHE_NAME)
+            .then(cache =>
+              cache.addAll([
+                '/json'
+              ])
+            )
+        )
+  })
 
 
 
@@ -133,12 +149,6 @@ function connect() {
 
   return localforage.getItem('config')
     .then( config => config || update )
-    .then( config =>
-        new Pusher(config.key, {
-          cluster: config.cluster,
-          encrypted: true
-        })
-    )
 }
 
 

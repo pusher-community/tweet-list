@@ -16,6 +16,8 @@ app.get('/json', (req, res, next) =>
     .catch( next )
 )
 
+// expose public channel config so we don't have to
+// hardcode in our frontend
 app.get('/config', (req, res) => {
   res.send({
     key: process.env.p_key,
