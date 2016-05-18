@@ -71,15 +71,11 @@
     <div id='container'></div>
 
     <script id='template' type='text/ractive'>
-      <label class="{{no_sw?'no':'yeah'}}">
-        <input type="checkbox" checked="{{sw_active}}" disabled="{{no_sw}}"/> enable service worker
-      </label>
 
       {{#no_sw}}
       <p><em>Service workers are not supported by this browser</em></p>
-      {{/no_sw}}
-
       <hr />
+      {{/no_sw}}
 
       {{#waiting}}
         <button id="more" on-click="reload()">
@@ -107,7 +103,6 @@
       data: {
         tweets: [],
         no_sw: !('serviceWorker' in navigator),
-        sw_active: false,
         waiting: 0
       },
       reload: function() {
@@ -143,39 +138,15 @@
 
 
     if(navigator.serviceWorker) {
+
       navigator.serviceWorker.addEventListener('message', function(event) {
-        // it was probably about a tweet
         ractive.add('waiting', 1)
-      })
+      });
+
+      navigator.serviceWorker.register('/sw.js')
+
     }
 
-
-
-    // hackily - handle the state of the the service worker
-
-    var skipReg
-    navigator.serviceWorker.ready.then(function(){
-      ractive.set('sw_active', true)
-      skipReg = true
-    })
-
-    ractive.observe( 'sw_active', function ( newValue, oldValue, keypath ) {
-      if(oldValue === undefined) return console.log("skip")
-      if(newValue) {
-        if(skipReg) return skipReg = false
-        navigator.serviceWorker.register('/sw.js')
-      } else {
-        navigator.serviceWorker.getRegistrations()
-          .then(function(registrations){
-            console.log("unregistrations: ", registrations)
-            registrations.forEach(function(registration) {
-              registration.unregister().then(function(success) {
-                console.log("unregister: " + success ? 'successful' : 'unsuccessful')
-              })
-            })
-          })
-      }
-    })
   </script>
   </body>
 </html>
