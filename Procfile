@@ -1,2 +1,2 @@
 web: node app.js
-worker: node worker.js
+worker: node populate.js
