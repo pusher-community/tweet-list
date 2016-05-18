@@ -18,8 +18,8 @@ self.addEventListener('install', (event) => {
     caches.open(CACHE_NAME)
       .then(cache =>
         cache.addAll([
-          '/json',
           '/',
+          '/json',
           '/ractive.min.js'
         ])
       )
@@ -33,8 +33,12 @@ self.addEventListener('fetch', (event) => {
   event.respondWith(
     caches
       .match(event.request)
-      .then(match =>
-        match || fetch(event.request)
+      .then(match => {
+        if(match) return match
+        else throw "no match"
+      })
+      .catch( e =>
+        fetch(event.request)
       )
   )
 })
