@@ -29,4 +29,21 @@ app.get('/config', (req, res) => {
   })
 })
 
+
+// external endpoint (for other, unrelated demos)
+app.get('/tweets', (req, res, next) => {
+  redis
+    .lrange( 'tweets', 0, -1 )
+    .then( result => result.map( JSON.parse ) )
+    .then( tweets => {
+      res.set('X-Pusher', JSON.stringify({
+        key: process.env.p_key,
+        cluster: process.env.p_cluster,
+        channel: process.env.p_channel
+      }))
+      res.send( tweets )
+    })
+    .catch( next )
+})
+
 app.listen(process.env.PORT || 3000)
