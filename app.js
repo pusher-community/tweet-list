@@ -7,7 +7,9 @@ const cors = require('cors')
 const Redis = require('ioredis')
 const redis = new Redis(process.env.REDIS_URL)
 
-app.use(cors())
+app.use(cors({
+  exposedHeaders: ['X-Pusher']
+}))
 
 app.use(express.static('public'))
 
