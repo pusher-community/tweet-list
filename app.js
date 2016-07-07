@@ -41,7 +41,8 @@ app.get('/tweets', (req, res, next) => {
       res.set('X-Pusher', JSON.stringify({
         key: process.env.p_key,
         cluster: process.env.p_cluster,
-        channel: process.env.p_channel
+        channel: process.env.p_channel,
+        event: 'tweet'
       }))
       res.send( tweets )
     })
