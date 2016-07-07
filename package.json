@@ -4,6 +4,7 @@
   "description": "A list of tweets from the twitter streaming api with offline support",
   "main": "app.js",
   "dependencies": {
+    "cors": "^2.7.1",
     "dotenv": "^2.0.0",
     "express": "^4.13.4",
     "ioredis": "^1.15.1",
