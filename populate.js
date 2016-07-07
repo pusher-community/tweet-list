@@ -31,7 +31,8 @@ stream
       name: t.user.name,
       screen_name: t.user.screen_name,
       img: t.user.profile_image_url_https,
-      link: `https://twitter.com/${t.user.screen_name}/status/${t.id_str}`
+      link: `https://twitter.com/${t.user.screen_name}/status/${t.id_str}`,
+      created_at: t.created_at
     }
     console.log("Got a tweet!", data)
 
