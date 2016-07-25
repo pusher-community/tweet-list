@@ -39,7 +39,7 @@ stream
     // store in redis
     redis.multi()
       .lpush('tweets', JSON.stringify(data))
-      .ltrim('tweets', 0, 150)
+      .ltrim('tweets', 0, 250)
       .exec()
       .then(
         c => console.log('saved'),
